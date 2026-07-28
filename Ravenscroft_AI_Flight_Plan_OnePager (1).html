@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Flight Plan — Ravenscroft Middle School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --green:       #00703C;
+      --green-dark:  #005a2f;
+      --green-light: #e6f3ec;
+      --gold:        #FFC702;
+      --gold-dark:   #e0ae00;
+      --text:        #1a1a1a;
+      --text-muted:  #666;
+      --text-faint:  #999;
+      --border:      #ddd;
+      --surface:     #f8f8f6;
+      --white:       #fff;
+      --radius:      10px;
+      --radius-sm:   6px;
+
+      --l1-bg:     #f9e8ec; --l1-border: #e0a0b0; --l1-text: #8b2a3a; --l1-dark: #6b1f2c;
+      --l2-bg:     #ede8f5; --l2-border: #b8a0d8; --l2-text: #4a2d80; --l2-dark: #362060;
+      --l3-bg:     #e6f3ec; --l3-border: #80c4a0; --l3-text: #00703C; --l3-dark: #005a2f;
+      --l4-bg:     #e6eef8; --l4-border: #90b4e0; --l4-text: #1a4d8f; --l4-dark: #133a6b;
+      --l5-bg:     #fdf6d8; --l5-border: #e0c840; --l5-text: #7a5c00; --l5-dark: #5a4400;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.5rem 4rem;
+      font-size: 16px;
+    }
+
+    .page { max-width: 900px; margin: 0 auto; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      border-radius: var(--radius) var(--radius) 0 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .topbar-main {
+      background: var(--green);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar-icon {
+      width: 60px; height: 60px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .topbar-icon span {
+      font-size: 42px; line-height: 1;
+      display: inline-block;
+      filter: brightness(0) invert(1);
+    }
+    .topbar-main h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px; font-weight: 400; color: #fff;
+    }
+    .topbar-main p { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+    .topbar-fields {
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      display: flex; flex-direction: column; gap: 8px;
+      justify-content: center; min-width: 260px;
+    }
+    .topbar-fields input {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; padding: 7px 10px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text); background: var(--surface); width: 100%;
+      transition: border-color 0.15s;
+    }
+    .topbar-fields input:focus { outline: none; border-color: var(--green); background: var(--white); }
+    .topbar-fields input::placeholder { color: var(--text-faint); }
+
+    /* ── GOLD ACCENT ── */
+    .gold-line { height: 3px; background: var(--gold); border-radius: 2px; margin-bottom: 1rem; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 10px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-muted); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-label-icon { font-size: 14px; color: var(--green); }
+
+    /* ── LEVEL STRIP ── */
+    .level-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .level-btn {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 6px 12px;
+      cursor: pointer;
+      background: var(--surface);
+      text-align: center;
+      transition: all 0.18s;
+      font-family: 'DM Sans', sans-serif;
+      user-select: none;
+      position: relative;
+    }
+    .level-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .level-btn:active { transform: scale(0.97); }
+
+    .lc-emoji { font-size: 26px; display: block; margin-bottom: 6px; line-height: 1; }
+    .lc-num {
+      display: block; font-family: 'DM Serif Display', serif;
+      font-size: 11px; letter-spacing: 0.04em; margin-bottom: 3px;
+    }
+    .lc-title { display: block; font-size: 10px; font-weight: 500; line-height: 1.3; margin-bottom: 5px; }
+    .lc-copilot {
+      display: block; font-size: 9px; line-height: 1.4;
+      margin-top: 5px; padding-top: 5px;
+      border-top: 1px solid rgba(0,0,0,0.08); font-style: italic;
+    }
+
+    .level-btn[data-level="1"] { background: var(--l1-bg); border-color: var(--l1-border); }
+    .level-btn[data-level="1"] .lc-num   { color: var(--l1-text); }
+    .level-btn[data-level="1"] .lc-title { color: var(--l1-dark); }
+    .level-btn[data-level="1"] .lc-copilot { color: var(--l1-text); }
+
+    .level-btn[data-level="2"] { background: var(--l2-bg); border-color: var(--l2-border); }
+    .level-btn[data-level="2"] .lc-num   { color: var(--l2-text); }
+    .level-btn[data-level="2"] .lc-title { color: var(--l2-dark); }
+    .level-btn[data-level="2"] .lc-copilot { color: var(--l2-text); }
+
+    .level-btn[data-level="3"] { background: var(--l3-bg); border-color: var(--l3-border); }
+    .level-btn[data-level="3"] .lc-num   { color: var(--l3-text); }
+    .level-btn[data-level="3"] .lc-title { color: var(--l3-dark); }
+    .level-btn[data-level="3"] .lc-copilot { color: var(--l3-text); }
+
+    .level-btn[data-level="4"] { background: var(--l4-bg); border-color: var(--l4-border); }
+    .level-btn[data-level="4"] .lc-num   { color: var(--l4-text); }
+    .level-btn[data-level="4"] .lc-title { color: var(--l4-dark); }
+    .level-btn[data-level="4"] .lc-copilot { color: var(--l4-text); }
+
+    .level-btn[data-level="5"] { background: var(--l5-bg); border-color: var(--l5-border); }
+    .level-btn[data-level="5"] .lc-num   { color: var(--l5-text); }
+    .level-btn[data-level="5"] .lc-title { color: var(--l5-dark); }
+    .level-btn[data-level="5"] .lc-copilot { color: var(--l5-text); }
+
+    .level-btn.selected[data-level="1"] { border-color: var(--l1-dark); box-shadow: 0 0 0 3px rgba(139,42,58,0.15); }
+    .level-btn.selected[data-level="2"] { border-color: var(--l2-dark); box-shadow: 0 0 0 3px rgba(74,45,128,0.15); }
+    .level-btn.selected[data-level="3"] { border-color: var(--l3-dark); box-shadow: 0 0 0 3px rgba(0,112,60,0.15); }
+    .level-btn.selected[data-level="4"] { border-color: var(--l4-dark); box-shadow: 0 0 0 3px rgba(26,77,143,0.15); }
+    .level-btn.selected[data-level="5"] { border-color: var(--l5-dark); box-shadow: 0 0 0 3px rgba(122,92,0,0.15); }
+
+    .level-btn.selected::after {
+      content: '✓';
+      position: absolute; top: 5px; right: 6px;
+      background: var(--green); color: white;
+      width: 16px; height: 16px; border-radius: 50%;
+      font-size: 9px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 16px; text-align: center;
+    }
+
+    /* ── MAIN GRID ── */
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+    textarea {
+      width: 100%; font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--surface); color: var(--text);
+      resize: none; min-height: 110px; line-height: 1.6;
+      transition: border-color 0.15s;
+    }
+    textarea:focus { outline: none; border-color: var(--green); background: var(--white); }
+    textarea::placeholder { color: var(--text-faint); }
+
+    /* ── QUICK CHECKS ── */
+    .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .check-item {
+      background: var(--surface); border-radius: var(--radius-sm); padding: 8px 10px;
+    }
+    .check-item.full { grid-column: 1 / -1; }
+    .check-item label {
+      display: block; font-size: 10px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 5px;
+    }
+    .check-item input {
+      width: 100%; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; background: transparent; border: none;
+      border-bottom: 1px solid var(--border); color: var(--text); padding: 3px 0;
+    }
+    .check-item input:focus { outline: none; border-bottom-color: var(--green); }
+    .check-item input::placeholder { color: var(--text-faint); }
+
+    /* ── PLATFORM SELECT ── */
+    .select-wrap { position: relative; }
+    .check-item select {
+      width: 100%; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; background: transparent; border: none;
+      border-bottom: 1px solid var(--border); color: var(--text);
+      padding: 3px 0; appearance: none; cursor: pointer;
+    }
+    .check-item select:focus { outline: none; border-bottom-color: var(--green); }
+    .select-wrap::after {
+      content: '▾'; font-size: 11px; color: var(--text-muted);
+      position: absolute; right: 2px; top: 3px; pointer-events: none;
+    }
+    .other-input { margin-top: 6px; display: none; }
+    .other-input.visible { display: block; }
+    .other-input input {
+      width: 100%; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; background: transparent; border: none;
+      border-bottom: 1px solid var(--border); color: var(--text); padding: 3px 0;
+    }
+    .other-input input:focus { outline: none; border-bottom-color: var(--green); }
+    .other-input input::placeholder { color: var(--text-faint); }
+
+    /* ── EVIDENCE OPTIONS ── */
+    .evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .ev-opt {
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 14px; cursor: pointer; background: var(--surface);
+      font-size: 13px; color: var(--text); text-align: left;
+      transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+      line-height: 1.4; display: flex; align-items: flex-start; gap: 10px;
+    }
+    .ev-icon { font-size: 16px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; margin-top: 1px; }
+    .ev-opt:hover { border-color: #aaa; background: #f0f0ee; }
+    .ev-opt.selected { border: 2px solid var(--green); background: var(--green-light); color: var(--green-dark); }
+    .ev-opt.selected .ev-icon { color: var(--green); }
+    .ev-opt-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; display: block; }
+    .ev-opt.selected .ev-opt-sub { color: var(--green-dark); opacity: 0.75; }
+
+    /* ── FOOTER BAR ── */
+    .footer-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.85rem 1.25rem; margin-top: 10px;
+    }
+    .footer-pledge { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .footer-pledge-icon { font-size: 16px; }
+    .footer-pledge strong { color: var(--text); }
+    .footer-right { display: flex; align-items: center; gap: 14px; }
+    .status-pill { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0; transition: background 0.25s;
+    }
+    .status-dot.active { background: var(--green); box-shadow: 0 0 0 3px rgba(0,112,60,0.15); }
+    .btn-print {
+      padding: 9px 22px; font-size: 13px; font-weight: 500;
+      border: none; border-radius: 50px;
+      background: var(--green); color: #fff; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(0,112,60,0.25);
+    }
+    .btn-print:hover { background: var(--green-dark); box-shadow: 0 4px 14px rgba(0,112,60,0.35); }
+
+    .mb-1 { margin-bottom: 10px; }
+
+    /* ── PRINT ── */
+    @media print {
+      @page { size: letter portrait; margin: 0.5in 0.55in; }
+      body {
+        background: white !important; padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .page { max-width: 100% !important; }
+      .btn-print, .status-pill { display: none !important; }
+      .topbar-main { background: #00703C !important; }
+      .gold-line { background: #FFC702 !important; }
+      .topbar { margin-bottom: 8px !important; }
+      .card { padding: 0.6rem 0.8rem !important; margin-bottom: 7px !important; }
+      .mb-1 { margin-bottom: 7px !important; }
+      .footer-bar { padding: 0.55rem 0.8rem !important; margin-top: 7px !important; }
+      textarea { border: 1px solid #ccc !important; min-height: 70px !important; font-size: 11px !important; }
+      .topbar-fields input { border: none !important; border-bottom: 1px solid #bbb !important; border-radius: 0 !important; background: transparent !important; }
+      .check-item input, .check-item select { border-bottom: 1px solid #bbb !important; }
+      .level-btn { padding: 8px 3px !important; }
+      .lc-emoji { font-size: 18px !important; }
+      .lc-num { font-size: 9px !important; }
+      .lc-title { font-size: 8px !important; }
+      .lc-copilot { font-size: 7px !important; }
+      .ev-opt { padding: 7px 10px !important; font-size: 11px !important; }
+      .footer-pledge { font-size: 10px !important; }
+      html { font-size: 13px !important; }
+    }
+
+    /* ── LEVEL CAP DIMMING ── */
+    .level-btn.dimmed {
+      opacity: 0.4;
+      pointer-events: none;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .level-cap-hint {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 8px; text-align: center;
+      min-height: 16px; transition: opacity 0.2s;
+    }
+    .level-cap-hint.visible { color: var(--green); font-weight: 500; }
+
+    /* ── LEVEL 1 GRAYOUT ── */
+    .grayed {
+      opacity: 0.35;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .grayed textarea,
+    .grayed input,
+    .grayed select { background: #f0f0f0 !important; }
+    .level1-notice {
+      display: none;
+      margin-top: 10px;
+      padding: 11px 14px;
+      background: var(--l1-bg);
+      border: 1px solid var(--l1-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--l1-dark);
+      align-items: center;
+      gap: 10px;
+    }
+    .level1-notice.visible { display: flex; }
+    .level1-notice-icon { font-size: 16px; flex-shrink: 0; }
+    @media (max-width: 620px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .topbar { grid-template-columns: 1fr; }
+      .topbar-fields { min-width: unset; border-left: none; border-top: 1px solid var(--border); }
+      .level-strip { grid-template-columns: repeat(5,1fr); gap: 4px; }
+      .evidence-grid { grid-template-columns: 1fr; }
+      .checks-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-main">
+      <div class="topbar-icon"><span>✈</span></div>
+      <div>
+        <h1>AI Flight Plan</h1>
+        <p>Ravenscroft Middle School &nbsp;·&nbsp; Complete all fields and submit with your work</p>
+      </div>
+    </div>
+    <div class="topbar-fields">
+      <input id="f-name"   type="text" placeholder="Student name" autocomplete="name" />
+      <input id="f-class"  type="text" placeholder="Teacher · Class (e.g. Ms. Nguyen · English 7)" />
+      <input id="f-assign" type="text" placeholder="Assignment name" />
+    </div>
+  </div>
+
+  <!-- LEVEL SELECTOR -->
+  <div class="card mb-1">
+    <div class="gold-line"></div>
+    <div class="section-label">
+      <span class="section-label-icon">◎</span>
+      Select the level(s) that describe your AI use
+    </div>
+    <div class="level-strip">
+
+      <div class="level-btn" data-level="1" onclick="pickLevel(this,1)" tabindex="0" role="button" aria-label="Level 1: No AI Use">
+        <span class="lc-emoji">🚫</span>
+        <span class="lc-num">LEVEL 1</span>
+        <span class="lc-title">No AI Use</span>
+        <span class="lc-copilot">You do 100% of the work yourself.</span>
+      </div>
+
+      <div class="level-btn" data-level="2" onclick="pickLevel(this,2)" tabindex="0" role="button" aria-label="Level 2: Thought Partner">
+        <span class="lc-emoji">💡</span>
+        <span class="lc-num">LEVEL 2</span>
+        <span class="lc-title">AI as Thought Partner</span>
+        <span class="lc-copilot">You explore ideas with AI, then create your own work.</span>
+      </div>
+
+      <div class="level-btn" data-level="3" onclick="pickLevel(this,3)" tabindex="0" role="button" aria-label="Level 3: Editor">
+        <span class="lc-emoji">✏️</span>
+        <span class="lc-num">LEVEL 3</span>
+        <span class="lc-title">AI as Editor</span>
+        <span class="lc-copilot">You create first, then use AI to polish your work.</span>
+      </div>
+
+      <div class="level-btn" data-level="4" onclick="pickLevel(this,4)" tabindex="0" role="button" aria-label="Level 4: Analyst">
+        <span class="lc-emoji">📊</span>
+        <span class="lc-num">LEVEL 4</span>
+        <span class="lc-title">AI as Analyst</span>
+        <span class="lc-copilot">You use AI insights to strengthen your own thinking.</span>
+      </div>
+
+      <div class="level-btn" data-level="5" onclick="pickLevel(this,5)" tabindex="0" role="button" aria-label="Level 5: Co-creator">
+        <span class="lc-emoji">🤝</span>
+        <span class="lc-num">LEVEL 5</span>
+        <span class="lc-title">AI as Co-creator</span>
+        <span class="lc-copilot">You guide AI, make decisions, and check all outputs.</span>
+      </div>
+
+    </div>
+    <div class="level-cap-hint" id="level-cap-hint"></div>
+    <div class="level1-notice" id="level1-notice">
+      <span class="level1-notice-icon">⏭</span>
+      <span>Since you selected Level 1 — No AI Use — the remaining questions don't apply. You can go ahead and print your Flight Plan.</span>
+    </div>
+  </div>
+
+  <!-- WRITING FIELDS -->
+  <div class="main-grid" id="section-writing">
+    <div class="card">
+      <div class="section-label">
+        <span class="section-label-icon">✎</span>
+        How I used AI
+      </div>
+      <textarea id="f-how" placeholder='What did you ask AI to do? What did it produce? If you used AI in more than one way, describe each — e.g. "I used Gemini to brainstorm, then had it edit my draft."'></textarea>
+    </div>
+    <div class="card">
+      <div class="section-label">
+        <span class="section-label-icon">★</span>
+        What I did myself
+      </div>
+      <textarea id="f-mine" placeholder="What thinking, writing, or problem-solving is entirely yours? This is the most important part."></textarea>
+    </div>
+  </div>
+
+  <!-- QUICK CHECKS -->
+  <div class="card mb-1" id="section-checks">
+    <div class="section-label">
+      <span class="section-label-icon">◈</span>
+      Quick checks
+    </div>
+    <div class="checks-grid">
+      <div class="check-item">
+        <label>AI platform used</label>
+        <div class="select-wrap">
+          <select id="f-platform" onchange="toggleOther(this.value)">
+            <option value="">— select one —</option>
+            <option value="Gemini">Gemini</option>
+            <option value="Flint">Flint</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="other-input" id="other-input">
+          <input type="text" id="f-platform-other" placeholder="Which AI tool did you use?" />
+        </div>
+      </div>
+      <div class="check-item">
+        <label>Anything else your teacher should know?</label>
+        <input type="text" placeholder="Optional — any context that would help" />
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:1rem;">
+      <span class="section-label-icon">◎</span>
+      Are you prepared to share evidence of your AI use with your teacher?
+    </div>
+    <div class="evidence-grid">
+      <div class="ev-opt" onclick="pickEvidence(this,'yes')" tabindex="0" role="button">
+        <span class="ev-icon">✓</span>
+        <div>
+          Yes — I will upload a chat log or screenshots
+          <span class="ev-opt-sub">I have a screenshot of my Gemini or Flint conversation ready to share</span>
+        </div>
+      </div>
+      <div class="ev-opt" onclick="pickEvidence(this,'unsure')" tabindex="0" role="button">
+        <span class="ev-icon">?</span>
+        <div>
+          No — I'm not sure how to find or upload what I need
+          <span class="ev-opt-sub">I used AI but need help locating my conversation history</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <div class="footer-pledge">
+      <span class="footer-pledge-icon">🛡</span>
+      <span><strong>Flight Plan commitment:</strong> Be honest &nbsp;·&nbsp; Use school tools &nbsp;·&nbsp; Share your chat logs</span>
+    </div>
+    <div class="footer-right">
+      <div class="status-pill">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-label">No level selected</span>
+      </div>
+      <button class="btn-print" onclick="window.print()">
+        🖨 Print / Save PDF
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var levelLabels = ['','No AI Use','Thought Partner','Editor','Analyst','Co-creator'];
+  var selectedLevels = []; // tracks currently selected level numbers
+
+  function pickLevel(el, n) {
+    var dot = document.getElementById('status-dot');
+    var lbl = document.getElementById('status-label');
+    var hint = document.getElementById('level-cap-hint');
+    var notice = document.getElementById('level1-notice');
+
+    // ── LEVEL 1 LOGIC: exclusive toggle ──
+    if (n === 1) {
+      var alreadySelected = el.classList.contains('selected');
+      // Clear everything first
+      selectedLevels = [];
+      document.querySelectorAll('.level-btn').forEach(function(b) {
+        b.classList.remove('selected', 'dimmed');
+      });
+      if (!alreadySelected) {
+        // Select Level 1
+        el.classList.add('selected');
+        selectedLevels = [1];
+        notice.classList.add('visible');
+        document.getElementById('section-writing').classList.add('grayed');
+        document.getElementById('section-checks').classList.add('grayed');
+        dot.classList.add('active');
+        lbl.textContent = 'Level 1 · No AI Use';
+        hint.textContent = '';
+        hint.classList.remove('visible');
+      } else {
+        // Deselected Level 1 — restore everything
+        notice.classList.remove('visible');
+        document.getElementById('section-writing').classList.remove('grayed');
+        document.getElementById('section-checks').classList.remove('grayed');
+        dot.classList.remove('active');
+        lbl.textContent = 'No level selected';
+        hint.textContent = '';
+        hint.classList.remove('visible');
+      }
+      return;
+    }
+
+    // ── LEVELS 2–5: multi-select up to 2, toggle on/off ──
+
+    // If Level 1 is active, clear it first
+    if (selectedLevels.indexOf(1) !== -1) {
+      selectedLevels = [];
+      document.querySelectorAll('.level-btn').forEach(function(b) {
+        b.classList.remove('selected', 'dimmed');
+      });
+      document.getElementById('level1-notice').classList.remove('visible');
+      document.getElementById('section-writing').classList.remove('grayed');
+      document.getElementById('section-checks').classList.remove('grayed');
+    }
+
+    var idx = selectedLevels.indexOf(n);
+    if (idx !== -1) {
+      // Deselect this level
+      selectedLevels.splice(idx, 1);
+      el.classList.remove('selected');
+    } else {
+      // Select — only if under cap of 2
+      if (selectedLevels.length < 2) {
+        selectedLevels.push(n);
+        el.classList.add('selected');
+      }
+    }
+
+    // Dim all unselected cards if cap is reached
+    var atCap = selectedLevels.length === 2;
+    document.querySelectorAll('.level-btn').forEach(function(b) {
+      var lvl = parseInt(b.getAttribute('data-level'));
+      if (lvl === 1) return; // Level 1 handled separately
+      if (atCap && selectedLevels.indexOf(lvl) === -1) {
+        b.classList.add('dimmed');
+      } else {
+        b.classList.remove('dimmed');
+      }
+    });
+
+    // Update status pill
+    if (selectedLevels.length === 0) {
+      dot.classList.remove('active');
+      lbl.textContent = 'No level selected';
+      hint.textContent = '';
+      hint.classList.remove('visible');
+    } else {
+      dot.classList.add('active');
+      var sorted = selectedLevels.slice().sort();
+      if (sorted.length === 1) {
+        lbl.textContent = 'Level ' + sorted[0] + ' · ' + levelLabels[sorted[0]];
+        hint.textContent = 'You can select one more level if needed';
+        hint.classList.remove('visible');
+      } else {
+        lbl.textContent = 'Levels ' + sorted[0] + ' + ' + sorted[1] + ' · ' + levelLabels[sorted[0]] + ' & ' + levelLabels[sorted[1]];
+        hint.textContent = '✓ Two levels selected';
+        hint.classList.add('visible');
+      }
+    }
+  }
+
+  function pickEvidence(el, val) {
+    document.querySelectorAll('.ev-opt').forEach(function(b) { b.classList.remove('selected'); });
+    el.classList.add('selected');
+  }
+
+  function toggleOther(val) {
+    var wrap = document.getElementById('other-input');
+    if (val === 'Other') {
+      wrap.classList.add('visible');
+      document.getElementById('f-platform-other').focus();
+    } else {
+      wrap.classList.remove('visible');
+      document.getElementById('f-platform-other').value = '';
+    }
+  }
+</script>
+
+</body>
+</html>
